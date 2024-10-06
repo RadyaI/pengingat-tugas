@@ -1,9 +1,8 @@
 const { Client, GatewayIntentBits, SlashCommandBuilder } = require('discord.js');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
-
 const { getDocs, collection, query, where } = require('firebase/firestore');
-const { db } = require('./firebase')
+const { db } = require('./firebase');
 
 require('dotenv').config();
 
@@ -33,7 +32,7 @@ const commands = [
         console.log('Started refreshing application (/) commands.');
 
         await rest.put(
-            Routes.applicationGuildCommands(process.env.clientId, process.env.guildId),
+            Routes.applicationCommands(process.env.clientId), // Mendaftar secara global
             { body: commands },
         );
 
@@ -89,7 +88,6 @@ client.on('interactionCreate', async interaction => {
 
         await interaction.reply(reply);
     } else if (commandName === 'tugas-besok') {
-
         const today = new Date();
         const tomorrow = new Date(today);
         tomorrow.setDate(today.getDate() + 1);
