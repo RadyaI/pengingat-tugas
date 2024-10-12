@@ -55,13 +55,14 @@ client.on('interactionCreate', async interaction => {
     const { commandName, options } = interaction;
 
     if (commandName === 'tugas') {
-        const tanggal = options.getString('tanggal');
+        const tanggal = options.getString('tanggal'); // Ambil input tanggal dari user
 
         if (!tanggal) {
             await interaction.reply('🔴 Mohon masukkan tanggal dengan format YYYY-MM-DD.');
             return;
         }
 
+        // Query untuk mendapatkan tugas berdasarkan tanggal
         const tugasQuery = query(
             collection(db, 'tugas_h'),
             where('deadline', '==', tanggal)
@@ -74,22 +75,40 @@ client.on('interactionCreate', async interaction => {
             tempData.push({ ...data.data(), id: data.id });
         });
 
+        // Jika tidak ada tugas pada tanggal tersebut
         if (tempData.length === 0) {
             await interaction.reply(`🔍 Tidak ada tugas dengan deadline tanggal **${tanggal}**.`);
             return;
         }
 
-        let reply = `📅 **Tugas dengan deadline tanggal ${tanggal}:**\n\n`;
+        // Gunakan deferReply untuk menunda respons
+        await interaction.deferReply();
 
+        // Membuat array untuk embed
+        const embeds = [];
+
+        // Loop untuk setiap tugas
         tempData.forEach(tugas => {
-            reply += `> **${tugas.tugas}**\n`;
-            reply += `> *Matkul:* ${tugas.matkul}\n`;
-            reply += `> *Deadline:* \`${tugas.deadline}\`\n`;
-            reply += `> *Deskripsi:* ${tugas.desc}\n`;
-            reply += `\n---\n`;
+            // Warna acak
+            const randomColor = Math.floor(Math.random() * 16777215).toString(16);
+
+            // Membuat embed untuk setiap tugas
+            const embed = new EmbedBuilder()
+                .setTitle(`📋 **${tugas.tugas}**`) // Judul embed dengan nama tugas
+                .setColor(`#${randomColor}`) // Warna acak untuk setiap embed
+                .addFields(
+                    { name: 'Matkul', value: tugas.matkul, inline: true },
+                    { name: 'Deadline', value: `\`${tugas.deadline}\``, inline: true },
+                    { name: 'Deskripsi', value: tugas.desc || 'Tidak ada deskripsi.' }
+                )
+                .setFooter({ text: `ID Tugas: ${tugas.id}` }); // Footer dengan ID tugas
+
+            // Tambahkan embed ke array
+            embeds.push(embed);
         });
 
-        await interaction.reply(reply);
+        // Kirim semua embed sekaligus
+        await interaction.editReply({ embeds: embeds });
     } else if (commandName === 'tugas-besok') {
         const today = new Date();
         const tomorrow = new Date(today);
@@ -111,22 +130,31 @@ client.on('interactionCreate', async interaction => {
         });
 
         if (tempData.length === 0) {
-            await interaction.reply("🔍 Tidak ada tugas dengan deadline besok mantap!");
+            await interaction.reply("🔍 Tidak ada tugas dengan deadline besok, mantap!");
             return;
         }
 
-        let reply = "📅 **Tugas dengan deadline besok:**\n\n";
+        await interaction.deferReply();
+
+        const embeds = [];
 
         tempData.forEach(tugas => {
-            reply += `> **${tugas.tugas}**\n`;
-            reply += `> *Matkul:* ${tugas.matkul}\n`;
-            reply += `> *Deadline:* \`${tugas.deadline}\`\n`;
-            reply += `> *Deskripsi:* ${tugas.desc}\n`;
-            reply += `\n---\n`;
+            const randomColor = Math.floor(Math.random() * 16777215).toString(16);
+
+            const embed = new EmbedBuilder()
+                .setTitle(`📋 **${tugas.tugas}**`) 
+                .setColor(`#${randomColor}`)
+                .addFields(
+                    { name: 'Matkul', value: tugas.matkul, inline: true },
+                    { name: 'Deadline', value: `\`${tugas.deadline}\``, inline: true },
+                    { name: 'Deskripsi', value: tugas.desc || 'Tidak ada deskripsi.' }
+                )
+                .setFooter({ text: `ID Tugas: ${tugas.id}` }); 
+            
+            embeds.push(embed);
         });
 
-        await interaction.reply(reply);
-
+        await interaction.editReply({ embeds: embeds });
     } else if (commandName === 'list-tugas') {
         const get = await getDocs(collection(db, 'tugas_h'));
         const tempData = [];
@@ -140,21 +168,38 @@ client.on('interactionCreate', async interaction => {
             return;
         }
 
-        let reply = "📋 **Daftar Tugas:**\n\n";
+        await interaction.deferReply();
+
+        const embeds = [];
 
         tempData.forEach(tugas => {
-            reply += `> **${tugas.tugas}**\n`;
-            reply += `> *Matkul:* ${tugas.matkul}\n`;
-            reply += `> *Deadline:* \`${tugas.deadline}\`\n`;
-            reply += `> *Deskripsi:* ${tugas.desc}\n`;
-            reply += `\n---\n`;
+            const randomColor = Math.floor(Math.random() * 16777215).toString(16);
+
+            const embed = new EmbedBuilder()
+                .setTitle(`📋 **${tugas.tugas}**`)
+                .setColor(`#${randomColor}`)
+                .addFields(
+                    { name: 'Matkul', value: tugas.matkul, inline: true },
+                    { name: 'Deadline', value: `\`${tugas.deadline}\``, inline: true },
+                    { name: 'Deskripsi', value: tugas.desc || 'Tidak ada deskripsi.' }
+                )
+                .setFooter({ text: `ID Tugas: ${tugas.id}` });
+
+            embeds.push(embed);
         });
 
-        await interaction.reply(reply);
+        await interaction.editReply({ embeds: embeds });
     } else if (commandName === 'tes') {
         const embed = new EmbedBuilder()
             .setColor('#FF0000')
-            .setDescription("Databasenya error bro minimal dibenerin");
+            .setTitle('❌ Error!') 
+            .setDescription("Bot telah tewass...") 
+            .addFields(
+                { name: 'Kemungkinan Anomali:', value: 'Hosting mati / database sekarat' }, 
+                { name: 'Solusi:', value: 'Coba restart bot atau cek koneksi database.' }  
+            )
+            .setFooter({ text: 'Pengingat Tugas Bot', iconURL: 'https://i.imgur.com/AfFp7pu.png' }) 
+            .setTimestamp();
 
         await interaction.reply({ embeds: [embed] });
     }
