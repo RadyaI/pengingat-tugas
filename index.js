@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits, SlashCommandBuilder } = require('discord.js');
+const { Client, GatewayIntentBits, SlashCommandBuilder, EmbedBuilder  } = require('discord.js');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const { getDocs, collection, query, where } = require('firebase/firestore');
@@ -25,6 +25,9 @@ const commands = [
     new SlashCommandBuilder()
         .setName('list-tugas')
         .setDescription('Menampilkan daftar tugas yang perlu dikerjakan.'),
+    new SlashCommandBuilder()
+    .setName('tes')
+    .setDescription('Cek apakah ada anomali'),
 ].map(command => command.toJSON());
 
 (async () => {
@@ -148,6 +151,12 @@ client.on('interactionCreate', async interaction => {
         });
 
         await interaction.reply(reply);
+    } else if (commandName === 'tes') {
+        const embed = new EmbedBuilder()
+            .setColor('#FF0000')
+            .setDescription("Databasenya error bro minimal dibenerin");
+
+        await interaction.reply({ embeds: [embed] });
     }
 });
 
