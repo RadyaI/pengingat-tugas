@@ -35,7 +35,7 @@ const commands = [
         console.log('Started refreshing application (/) commands.');
 
         await rest.put(
-            Routes.applicationCommands(process.env.clientId), // Mendaftar secara global
+            Routes.applicationCommands(process.env.clientId), // Mendaftar secara global semua server (yang ada bot ini)
             { body: commands },
         );
 
